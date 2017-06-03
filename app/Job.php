@@ -11,8 +11,8 @@ class Job extends Model
         'title',
         'local',
         'remote',
-        'company_id'
-        'description',
+        'company_id',
+        'description'
     ];
 
     protected $dates = ['delete_at'];

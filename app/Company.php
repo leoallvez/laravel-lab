@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Company extends Model {
 
-    protected $filable = [
+    protected $fillable = [
         'logo', 
         'name',
         'email',
@@ -14,7 +14,9 @@ class Company extends Model {
         'password',
     ];
 
-    protected $hidden = ['password'];
+
+
+    // protected $hidden = ['password'];
 
     protected $dates = ['deleted_at'];
 
