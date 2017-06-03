@@ -14,3 +14,20 @@
 Route::get('/', function () {
     return view('welcome');
 });
+
+
+Route::group(['prefix' => 'api'], function() {
+    
+    Route::get('/', function () {
+        return response()->json([
+            'response' => 'Jobs API 1.0', 
+            'status' => 'Connected'
+        ])
+    });
+
+});
+
+Route::get('/', function(){
+        return redirect('api');
+});
+
