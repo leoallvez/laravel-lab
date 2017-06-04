@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 use App\Job;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 
 class JobsController extends Controller
 {
@@ -17,7 +18,10 @@ class JobsController extends Controller
 
         if(!is_null($jobs)) 
         {
-            return response()->json(['status' => true, 'jobs' => $jobs], 200);
+            return response()->json([
+                'status' => true, 
+                'jobs' => $jobs
+            ], 200);
         }
         return response()->json(['status' => false], 200);
     }
@@ -30,11 +34,21 @@ class JobsController extends Controller
      */
     public function store(Request $request)
     {
-        $job = new Job($request->all());
+        $validator = $this->jobValidator($request);
 
-        $job->save();
-   
-        return response()->json(['status' => true, 'job' => $job]);
+        if(!$validator->fails()) 
+        {
+            $job = new Job($request->all());
+
+            $job->save();
+    
+            return response()->json([
+                'status' => true, 
+                'job' => $job
+            ], 200);
+        }
+
+        return response()->json(['status' => false, 'errors' => $validator->errors()], 200);
     }
 
     /**
@@ -49,7 +63,10 @@ class JobsController extends Controller
 
         if(!is_null($job))
         {
-            return response()->json(['status' => true, 'job' => $job], 200);
+            return response()->json([
+                'status' => true, 
+                'job' => $job
+            ], 200);
         }
         return response()->json(['status' => false], 200);
     }
@@ -64,16 +81,30 @@ class JobsController extends Controller
      */
     public function update(Request $request, $id)
     {
-        $job = Job::find($id);
+        $validator = $this->jobValidator($request);
 
-        if(!is_null($job))
-        {
-            $job->update($request->all());
+        if(!$validator->fails())
+         {
+            $job = Job::find($id);
 
-            return response()->json(['status' => true, 'job' => $job], 200);
+            if(!is_null($job))
+            {
+                $job->update($request->all());
+
+                return response()->json([
+                    'status' => true,
+                     'job' => $job
+                ], 200);
+            }
+            return response()->json([
+                'status' => false, 
+                'errors' => ['Job not found']
+            ], 200);
         }
-
-        return response()->json(['status' => false], 200);
+        return response()->json([
+            'status' => false, 
+            'errors' => $validator->errors()
+        ], 200);
     }
 
     /**
@@ -90,8 +121,26 @@ class JobsController extends Controller
         {
             $job->delete();
 
-            return response()->json(['status' => true, 'job' => $job], 200);
+            return response()->json([
+                'status' => true, 
+                'job' => $job
+            ], 200);
         }
         return response()->json(['status' => false], 200);
+    }
+
+    protected function JobValidator($request) {
+        //Custom Error Messages.
+        $messages = [
+            'title.required' => 'The title of job is required.',
+            'description.required' => 'The description of job is required.'
+        ];
+        //Validation.
+        $validator = Validator::make($request->all(), [
+            'title' => 'required',
+            'description' => 'required'
+        ], $messages);
+
+        return $validator;
     }
 }

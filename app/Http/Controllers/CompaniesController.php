@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 use App\Company;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 
 class CompaniesController extends Controller
 {
@@ -17,7 +18,10 @@ class CompaniesController extends Controller
 
         if(!is_null($companies))
         {
-            return response()->json(['status' => true, 'companies' => $companies], 200);
+            return response()->json([
+                'status' => true, 
+                'companies' => $companies
+            ], 200);
         }
         return response()->json(['status' => false], 200);
     }
@@ -30,11 +34,22 @@ class CompaniesController extends Controller
      */
     public function store(Request $request)
     {
-        $company = new Company($request->all());
+        $validator = $this->companyValidator($request);
 
-        $company->save();
+        if(!$validator->fails()) 
+        {
+            $company = new Company($request->all());
 
-        return response()->json(['status' => true, 'company' => $company], 200);
+            $company->save();
+            return response()->json([
+                'status' => true, 
+                'company' => $company
+            ], 200);
+        }
+        return response()->json([
+            'status' => false, 
+            'errors' => $validator->errors()
+        ], 200);
     }
 
     /**
@@ -49,7 +64,10 @@ class CompaniesController extends Controller
 
         if(!is_null($company))
         {
-            return response()->json(['status' => true, 'company' => $company], 200);
+            return response()->json([
+                'status' => true, 
+                'company' => $company
+            ], 200);
         }
         return response()->json(['status' => false], 200);
     }
@@ -63,16 +81,30 @@ class CompaniesController extends Controller
      */
     public function update(Request $request, $id)
     {
-        $company = Company::find($id);
+        $validator = $this->companyValidator($request);
 
-        if(!is_null($company))
+        if(!$validator->fails()) 
         {
-            $company->update($request->all());
+            $company = Company::find($id);
 
-            return response()->json(['status' => true, 'company' => $company ], 200);
+            if(!is_null($company))
+            {
+                $company->update($request->all());
+
+                return response()->json([
+                    'status' => true, 
+                    'company' => $company 
+                ], 200);
+            }
+            return response()->json([
+                 'status' => false, 
+                 'errors' => ['Job not found']
+            ], 200);
         }
-
-        return response()->json(['status' => false], 200);
+        return response()->json([
+            'status' => false, 
+            'errors' => $validator->errors()
+        ], 200);
     }
 
     /**
@@ -89,8 +121,26 @@ class CompaniesController extends Controller
         {
             $company->delete();
 
-            return response()->json(['status' => true, 'company' => $company], 200);
+            return response()->json([
+                'status' => true, 
+                'company' => $company
+            ], 200);
         }
         return response()->json(['status' => false], 200);
+    }
+
+    protected function companyValidator($request) {
+        //Custom Error Messages.
+        $messages = [
+            'name.required' => 'The name of company is required.',
+            'email.required' => 'The email of company is required.'
+        ];
+        //Validation.
+        $validator = Validator::make($request->all(), [
+            'name' => 'required',
+            'email' => 'required'
+        ], $messages);
+
+        return $validator;
     }
 }
